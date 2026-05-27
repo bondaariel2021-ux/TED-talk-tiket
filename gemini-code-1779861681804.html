@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>כרטיס TED - מהדורת אדום מותאם</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Heebo:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ted-custom-red: #cc0404;   /* קוד הגוון המדויק שביקשת */
+    --ted-light-glow: #e60505;
+    --cream-light: #fdf6ec;
+    --border-alpha: rgba(255, 255, 255, 0.35);
+  }
+
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #160000 0%, #050000 100%);
+    display: flex; flex-direction: column; align-items: center;
+    font-family: 'Heebo', sans-serif;
+    overflow-x: hidden; padding: 40px 20px;
+  }
+
+  .page-wrapper {
+    position: relative; z-index: 2;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 40px; width: 100%; max-width: 900px;
+  }
+
+  /* Header */
+  .site-header { text-align: center; }
+  .site-title { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color: var(--ted-custom-red); letter-spacing:.4em; text-transform:uppercase; margin-bottom:4px; }
+  .site-subtitle { font-size:12px; color:rgba(255,255,255,.4); letter-spacing:.2em; }
+
+  /* Ticket - Custom Red Style */
+  .ticket-wrapper { filter: drop-shadow(0 25px 50px rgba(204,4,4,0.4)); width:100%; max-width:780px; }
+  .ticket { 
+    display:flex; width:100%; border-radius:16px; overflow:hidden; position: relative; 
+    border: 1px solid var(--border-alpha);
+    background: var(--ted-custom-red);
+  }
+  
+  /* הפס הצידי מימין */
+  .ticket-orange-stripe {
+    width: 12px; background: linear-gradient(180deg, var(--ted-light-glow) 0%, var(--ted-custom-red) 100%); flex-shrink: 0; order: 3;
+  }
+
+  /* גוף הכרטיס המרכזי */
+  .ticket-body {
+    flex:1; padding: 40px 45px; position:relative; display: flex; flex-direction: column; justify-content: space-between; order: 2;
+    background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.18) 0%, transparent 80%);
+  }
+
+  .ticket-top-row { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom: 25px; }
+  .ted-logo-area { display: flex; flex-direction: column; align-items: flex-start; }
+  .ted-letters { font-family:'Playfair Display',serif; font-weight:900; font-size:52px; line-height:0.85; color: #fff; letter-spacing: -1px; text-shadow: 0 4px 10px rgba(0,0,0,0.25); }
+  .ted-tagline { font-size:9px; font-weight: 700; color: #fff; opacity: 0.95; letter-spacing:.12em; text-transform:uppercase; margin-top:5px; }
+  
+  .deco-diamonds { color: #fff; opacity: 0.65; font-size: 14px; letter-spacing: 4px; }
+
+  .ticket-dedication { text-align:center; margin: 15px 0 35px; }
+  .dedication-label { font-size:11px; font-weight: 700; letter-spacing:.15em; color: #fff; opacity: 0.85; text-transform:uppercase; margin-bottom:6px; }
+  .dedication-name { font-family:'Playfair Display',serif; font-size:clamp(26px, 4.5vw, 40px); font-weight:900; color: #fff; text-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+
+  /* גריד המידע התחתון */
+  .ticket-info-grid { display:grid; grid-template-columns: auto 1fr auto; gap: 40px; align-items: flex-end; }
+  
+  .info-block { display:flex; flex-direction:column; gap:4px; }
+  .info-label { font-size:10px; font-weight:700; color: #fff; opacity: 0.85; text-transform:uppercase; }
+  .info-value { font-size:15px; font-weight:700; color: #fff; }
+
+  /* עיצוב ריבוע השורה והמושב */
+  .seat-row-block { display:flex; align-items:center; background: rgba(255,255,255,0.14); border: 1px solid rgba(255, 255, 255, 0.45); border-radius:10px; padding: 4px 0; backdrop-filter: blur(5px); }
+  .seat-row-part { display:flex; flex-direction:column; align-items:center; padding:6px 18px; min-width: 65px; }
+  .seat-row-label { font-size:9px; color: #fff; opacity: 0.95; font-weight: 700; margin-bottom: 2px; }
+  .seat-row-value { font-family:'Playfair Display',serif; font-size:22px; font-weight:900; color: #fff; line-height:1; }
+  .seat-row-divider { width:1px; align-self:stretch; background: rgba(255, 255, 255, 0.35); }
+
+  /* כפתור הסטטוס המעוגל "מאושר" */
+  .status-badge { background: #fff; color: var(--ted-custom-red); font-size:10px; font-weight:700; padding:6px 16px; border-radius:20px; display: inline-block; margin-top: 10px; letter-spacing: 0.5px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+  .ticket-num-indicator { font-size: 11px; color: #fff; opacity: 0.9; margin-top: 5px; font-weight: 700; }
+
+  /* ברקוד לבן */
+  .barcode-area { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .barcode-lines { display: flex; gap: 1.5px; align-items: flex-end; height: 30px; opacity: 0.95; }
+  .barcode-lines span { background: #fff; width: 2px; height: 30px; }
+  .barcode-num { font-size: 9px; font-family: monospace; color: #fff; opacity: 0.8; }
+
+  /* ספח שמאלי */
+  .ticket-stub { 
+    width:100px; flex-shrink:0; border-right:1.5px dashed var(--border-alpha); display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:40px 10px; background: rgba(0,0,0,0.12); order: 1;
+  }
+  .stub-title { font-family:'Playfair Display',serif; font-size:20px; font-weight:900; color: #fff; opacity: 0.7; }
+  .stub-label { font-size:9px; color: #fff; opacity: 0.85; margin-bottom: 2px; }
+  .stub-value { font-family:'Playfair Display',serif; font-size:24px; font-weight:900; color: #fff; line-height: 1; }
+
+  /* Panels UI */
+  .qty-panel, .edit-panel { background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding: 28px 32px; width:100%; max-width:780px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+  .qty-panel h2, .edit-panel h2 { font-family:'Playfair Display',serif; font-size:16px; color:#fff; letter-spacing:.15em; margin-bottom:20px; text-align:center; }
+  
+  .qty-controls { display:flex; align-items:center; justify-content:center; margin-bottom:25px; }
+  .qty-btn { width:44px; height:44px; border-radius:50%; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.05); color:#fff; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition: all 0.2s; }
+  .qty-btn:hover { background: var(--ted-custom-red); border-color: var(--ted-custom-red); }
+  .qty-display { width:100px; text-align:center }
+  .qty-number { font-family:'Playfair Display',serif; font-size:44px; font-weight:900; color:#fff; line-height:1; }
+
+  .tickets-preview { display:flex; flex-direction:column; gap:10px; }
+  .mini-ticket { display:flex; align-items:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; overflow:hidden; cursor:pointer; transition:all .2s; }
+  .mini-ticket:hover, .mini-ticket.active { border-color: var(--ted-custom-red); background:rgba(255,255,255,0.07); }
+  .mini-stripe { width:4px; align-self:stretch; background: var(--ted-custom-red); }
+  .mini-body { flex:1; display:flex; align-items:center; justify-content:space-between; padding:12px 16px; }
+  .mini-ted { font-family:'Playfair Display',serif; font-weight:900; font-size:16px; color: var(--ted-custom-red); }
+  .mini-family { font-size:13px; font-weight:700; color:#fff; }
+  .mini-seat-val { font-weight:700; color: var(--ted-custom-red); }
+  .mini-num-badge { width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; font-size:11px; color:#fff; }
+
+  /* Tabs UI */
+  .tabs-container { display:flex; gap:8px; margin-bottom:20px; justify-content:center; overflow-x:auto; }
+  .tab-btn { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); padding:8px 16px; color:rgba(255,255,255,0.6); border-radius:6px; cursor:pointer; font-size:12px; }
+  .tab-btn.active { background: var(--ted-custom-red); color:#fff; border-color: var(--ted-custom-red); font-weight:700; }
+
+  .fields-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .field { display:flex; flex-direction:column; gap:6px; }
+  .field.full { grid-column:1/-1; }
+  .field label { font-size:11px; color:rgba(255,255,255,0.5); }
+  .field input { background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.15); border-radius:6px; padding:10px 14px; color:#fff; font-size:14px; outline:none; }
+  .field input:focus { border-color: var(--ted-custom-red); }
+  .field input[readonly] { opacity:.4; }
+
+  .btn-row { display:flex; gap:12px; justify-content:center; margin-top:24px; flex-wrap:wrap; }
+  .btn { font-size:12px; font-weight:700; padding:12px 28px; border-radius:40px; cursor:pointer; border:none; transition: all 0.2s; }
+  .btn-primary { background: var(--ted-custom-red); color:#fff; }
+  .btn-primary:hover { background: #b30303; }
+  .btn-secondary { background:transparent; color:rgba(255,255,255,0.5); border:1px solid rgba(255,255,255,0.15); }
+  .btn-secondary:hover { color:#fff; border-color:rgba(255,255,255,0.3); }
+
+  /* Loader */
+  .loading-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:999; align-items:center; justify-content:center; flex-direction:column; gap:16px; }
+  .loading-overlay.show { display:flex; }
+  .loading-spinner { width:40px; height:40px; border:2px solid rgba(255,255,255,0.1); border-top-color: var(--ted-custom-red); border-radius:50%; animation:spin .8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg) } }
+
+  @media(max-width:620px){
+    .ticket { flex-direction:column; }
+    .ticket-orange-stripe { width: 100%; height: 8px; order: 1; }
+    .ticket-body { order: 2; padding: 30px 20px; }
+    .ticket-stub { width:100%; border-right:none; border-top:1px dashed var(--border-alpha); padding: 20px; order: 3; flex-direction: row; justify-content: space-between; }
+    .ticket-info-grid { grid-template-columns: 1fr; gap: 20px; }
+    .fields-grid { grid-template-columns:1fr; }
+    .field.full { grid-column:1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <div style="color: #fff; font-size: 14px;">מפיק קובצי PDF באיכות גבוהה...</div>
+</div>
+
+<div id="pdf-render-area" style="position:absolute;left:-9999px;top:-9999px;width:840px;overflow:hidden;"></div>
+
+<div class="page-wrapper">
+
+  <header class="site-header">
+    <div class="site-title">מערכת הפקת כרטיסים</div>
+    <div class="site-subtitle">TED CUSTOM RED DESIGNER</div>
+  </header>
+
+  <div class="ticket-wrapper">
+    <div class="ticket" id="main-ticket-element">
+      
+      <div class="ticket-orange-stripe"></div>
+
+      <div class="ticket-body">
+        <div class="ticket-top-row">
+          <div class="ted-logo-area">
+            <div class="ted-letters">TED</div>
+            <div class="ted-tagline">Ideas Worth Spreading</div>
+          </div>
+          <div class="deco-diamonds">✦✦✦✦✦</div>
+        </div>
+
+        <div class="ticket-dedication">
+          <div class="dedication-label">לכבוד</div>
+          <div class="dedication-name"><span id="ticket-family">—</span></div>
+        </div>
+
+        <div class="ticket-info-grid">
+          <div class="info-block">
+            <span class="info-label">מיקום</span>
+            <span class="info-value" id="ticket-location">פרינדס יהוד · אולם מופת</span>
+            <div><span class="status-badge">✓ מאושר · TED TALKS LIVE</span></div>
+          </div>
+          
+          <div class="info-block" style="align-items: center;">
+            <span class="info-label">תאריך ושעה</span>
+            <span class="info-value" id="ticket-date" style="direction: ltr;">1/6/26 · 12:30</span>
+            <div class="ticket-num-indicator">כרטיס <span id="main-ticket-num">1</span></div>
+          </div>
+
+          <div class="info-block" style="align-items: flex-end;">
+            <div class="seat-row-block">
+              <div class="seat-row-part">
+                <span class="seat-row-label">שורה</span>
+                <span class="seat-row-value" id="ticket-row">—</span>
+              </div>
+              <div class="seat-row-divider"></div>
+              <div class="seat-row-part">
+                <span class="seat-row-label">מושב</span>
+                <span class="seat-row-value" id="ticket-seat">—</span>
+              </div>
+            </div>
+            
+            <div class="barcode-area" style="margin-top: 12px; margin-left: 10px;">
+              <div class="barcode-lines" id="barcode-container"></div>
+              <div class="barcode-num" id="barcode-text">TED-7097-1246</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ticket-stub">
+        <div class="stub-title">TED</div>
+        <div style="text-align: center;">
+          <div class="stub-label">מושב</div>
+          <div class="stub-value" id="stub-seat">—</div>
+        </div>
+        <div style="font-size: 10px; color: #fff; opacity: 0.75; font-weight: 700;">ספח כניסה</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="qty-panel">
+    <h2>✦ כמות כרטיסים להפקה ✦</h2>
+    <div class="qty-controls">
+      <button class="qty-btn" id="btn-minus">−</button>
+      <div class="qty-display">
+        <span class="qty-number" id="qty-num">1</span>
+      </div>
+      <button class="qty-btn" id="btn-plus">+</button>
+    </div>
+    <div class="tickets-preview" id="tickets-preview"></div>
+  </div>
+
+  <div class="edit-panel">
+    <h2>✦ עריכת פרטי הכרטיסים ✦</h2>
+    <div class="tabs-container" id="tabs-container"></div>
+    
+    <div class="fields-grid">
+      <div class="field full">
+        <label>שם האורח / משפחה (יופיע תחת "לכבוד")</label>
+        <input type="text" id="inp-family" placeholder="לדוגמה: משפחת כהן או אריאל בונדה">
+      </div>
+      <div class="field">
+        <label>תאריך ושעה (קבוע)</label>
+        <input type="text" id="inp-date" value="1/6/26 · 12:30" readonly>
+      </div>
+      <div class="field">
+        <label>מיקום (קבוע)</label>
+        <input type="text" id="inp-location" value="פרינדס יהוד · אולם מופת" readonly>
+      </div>
+      <div class="field">
+        <label>שורה</label>
+        <input type="text" id="inp-row" placeholder="1">
+      </div>
+      <div class="field">
+        <label>מספר מושב</label>
+        <input type="text" id="inp-seat" placeholder="2">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="btn-reset">אפס הכל</button>
+      <button class="btn btn-primary" id="btn-pdf">📄 ייצוא לקובץ PDF</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const FIXED_DATE     = '1/6/26 · 12:30';
+  const FIXED_LOCATION = 'פרינדס יהוד · אולם מופת';
+
+  function generateBarcodeUI(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    const widths = [1, 2, 1, 3, 1, 2, 4, 1, 2, 1, 3, 2, 1, 4, 1, 2];
+    widths.forEach(w => {
+      const line = document.createElement('span');
+      line.style.width = w + 'px';
+      line.style.display = 'inline-block';
+      line.style.background = '#ffffff';
+      line.style.height = '25px';
+      line.style.margin = '0 0.5px';
+      container.appendChild(line);
+    });
+  }
+
+  let qty = 1;
+  let activeIndex = 0; 
+  let ticketsData = [{ family: '', row: '', seat: '' }];
+
+  function adjustTicketsDataSchema() {
+    while (ticketsData.length < qty) {
+      const lastTicket = ticketsData[ticketsData.length - 1];
+      let nextSeat = '';
+      if (lastTicket && !isNaN(parseInt(lastTicket.seat))) {
+        nextSeat = (parseInt(lastTicket.seat) + 1).toString();
+      }
+      ticketsData.push({
+        family: lastTicket ? lastTicket.family : '', 
+        row: lastTicket ? lastTicket.row : '',       
+        seat: nextSeat
+      });
+    }
+    if (ticketsData.length > qty) {
+      ticketsData = ticketsData.slice(0, qty);
+    }
+    if (activeIndex >= qty) activeIndex = qty - 1;
+  }
+
+  function syncUI() {
+    adjustTicketsDataSchema();
+    renderTabs();
+    
+    const currentData = ticketsData[activeIndex];
+    document.getElementById('inp-family').value = currentData.family;
+    document.getElementById('inp-row').value    = currentData.row;
+    document.getElementById('inp-seat').value   = currentData.seat;
+
+    document.getElementById('ticket-family').textContent   = currentData.family || '—';
+    document.getElementById('ticket-row').textContent      = currentData.row    || '—';
+    document.getElementById('ticket-seat').textContent     = currentData.seat   || '—';
+    document.getElementById('stub-seat').textContent       = currentData.seat   || '—';
+    document.getElementById('main-ticket-num').textContent = activeIndex + 1;
+
+    generateBarcodeUI('barcode-container');
+    renderMiniTicketsPreview();
+  }
+
+  function renderTabs() {
+    const tabsContainer = document.getElementById('tabs-container');
+    tabsContainer.innerHTML = '';
+    for (let i = 0; i < qty; i++) {
+      const btn = document.createElement('button');
+      btn.className = `tab-btn ${i === activeIndex ? 'active' : ''}`;
+      const nameText = ticketsData[i].family ? `(${ticketsData[i].family})` : '';
+      btn.textContent = `כרטיס ${i + 1} ${nameText}`;
+      btn.addEventListener('click', () => {
+        activeIndex = i;
+        syncUI();
+      });
+      tabsContainer.appendChild(btn);
+    }
+  }
+
+  function handleInputChange() {
+    ticketsData[activeIndex].family = document.getElementById('inp-family').value.trim();
+    ticketsData[activeIndex].row    = document.getElementById('inp-row').value.trim();
+    ticketsData[activeIndex].seat   = document.getElementById('inp-seat').value.trim();
+    
+    document.getElementById('ticket-family').textContent = ticketsData[activeIndex].family || '—';
+    document.getElementById('ticket-row').textContent    = ticketsData[activeIndex].row    || '—';
+    document.getElementById('ticket-seat').textContent   = ticketsData[activeIndex].seat   || '—';
+    document.getElementById('stub-seat').textContent     = ticketsData[activeIndex].seat   || '—';
+    
+    renderMiniTicketsPreview();
+  }
+
+  function renderMiniTicketsPreview() {
+    const preview = document.getElementById('tickets-preview');
+    preview.innerHTML = '';
+
+    ticketsData.forEach((data, i) => {
+      const div = document.createElement('div');
+      div.className = `mini-ticket ${i === activeIndex ? 'active' : ''}`;
+      div.innerHTML = `
+        <div class="mini-stripe"></div>
+        <div class="mini-body">
+          <div class="mini-ted">TED</div>
+          <div class="mini-info">
+            <div class="mini-family">${data.family || '—'}</div>
+            <div class="mini-details">${FIXED_DATE}</div>
+          </div>
+          <div style="font-size:12px; color:#fff;">
+            שורה <span class="mini-seat-val">${data.row || '—'}</span> | מושב <span class="mini-seat-val">${data.seat || '—'}</span>
+          </div>
+          <div class="mini-num-badge">${i+1}</div>
+        </div>`;
+      
+      div.addEventListener('click', () => {
+        activeIndex = i;
+        syncUI();
+      });
+      preview.appendChild(div);
+    });
+  }
+
+  // הפקת קוד כרטיס באדום המותאם המדויק ל-PDF
+  function buildTicketHTMLForPDF(family, row, seat, ticketNum) {
+    const randomSerial = "TED-" + Math.floor(6000 + Math.random() * 2000) + "-" + Math.floor(1000 + Math.random() * 9000);
+    const barcodeLinesHTML = [1, 2, 1, 3, 1, 2, 4, 1, 2, 1, 3, 2, 1, 4, 1, 2].map(w => {
+      return `<span style="display:inline-block; width:${w}px; height:25px; background:#ffffff; margin:0 0.5px;"></span>`;
+    }).join('');
+
+    return `
+    <div style="display:flex; width:750px; border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.4); font-family:'Heebo', sans-serif; direction:rtl; text-align:right; box-sizing:border-box; position:relative; background: #cc0404;">
+      
+      <div style="width:12px; background:linear-gradient(180deg, #e60505 0%, #cc0404 100%); flex-shrink:0;"></div>
+
+      <div style="flex:1; padding:40px 45px; display:flex; flex-direction:column; justify-content:space-between; background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.18) 0%, transparent 80%);">
+        
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:15px;">
+          <div style="display:flex; flex-direction:column;">
+            <div style="font-family:'Playfair Display',serif; font-weight:900; font-size:52px; line-height:0.85; color:#ffffff; letter-spacing:-1px; text-shadow:0 4px 10px rgba(0,0,0,0.25);">TED</div>
+            <div style="font-size:9px; font-weight:700; color:#fdf6ec; opacity:0.95; letter-spacing:1px; text-transform:uppercase; margin-top:5px;">Ideas Worth Spreading</div>
+          </div>
+          <div style="color:#ffffff; opacity:0.65; font-size:14px; letter-spacing:4px;">✦✦✦✦✦</div>
+        </div>
+
+        <div style="text-align:center; margin:15px 0 35px;">
+          <div style="font-size:11px; font-weight:700; color:#fdf6ec; opacity:0.85; text-transform:uppercase; margin-bottom:6px;">לכבוד</div>
+          <div style="font-family:'Playfair Display',serif; font-size:36px; font-weight:900; color:#ffffff; text-shadow:0 4px 12px rgba(0,0,0,0.3);">${family}</div>
+        </div>
+
+        <div style="display:flex; gap:40px; align-items:flex-end;">
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <span style="font-size:10px; font-weight:700; color:#fdf6ec; opacity:0.85;">מיקום</span>
+            <span style="font-size:15px; font-weight:700; color:#ffffff;">${FIXED_LOCATION}</span>
+            <div style="margin-top:10px;"><span style="background:#ffffff; color:#cc0404; font-size:10px; font-weight:700; padding:6px 16px; border-radius:20px; display:inline-block; font-weight:bold;">✓ מאושר · TED TALKS LIVE</span></div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex:1;">
+            <span style="font-size:10px; font-weight:700; color:#fdf6ec; opacity:0.85;">תאריך ושעה</span>
+            <span style="font-size:15px; font-weight:700; color:#ffffff; direction:ltr;">${FIXED_DATE}</span>
+            <div style="font-size:11px; color:#fdf6ec; opacity:0.9; margin-top:5px; font-weight:700;">כרטיס ${ticketNum}</div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; align-items:flex-end;">
+            <div style="display:flex; align-items:center; background:rgba(255,255,255,0.14); border:1px solid rgba(255, 255, 255, 0.45); border-radius:10px; padding:4px 0;">
+              <div style="display:flex; flex-direction:column; align-items:center; padding:6px 18px; min-width:65px;">
+                <span style="font-size:9px; color:#ffffff; opacity:0.95; font-weight:700; margin-bottom:2px;">שורה</span>
+                <span style="font-family:'Playfair Display',serif; font-size:22px; font-weight:900; color:#ffffff; line-height:1;">${row}</span>
+              </div>
+              <div style="width:1px; align-self:stretch; background:rgba(255, 255, 255, 0.35);"></div>
+              <div style="display:flex; flex-direction:column; align-items:center; padding:6px 18px; min-width:65px;">
+                <span style="font-size:9px; color:#ffffff; opacity:0.95; font-weight:700; margin-bottom:2px;">מושב</span>
+                <span style="font-family:'Playfair Display',serif; font-size:22px; font-weight:900; color:#ffffff; line-height:1;">${seat}</span>
+              </div>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; margin-top:12px; margin-left:10px;">
+              <div style="display:flex; gap:1.5px; align-items:flex-end; height:25px; opacity:0.95;">${barcodeLinesHTML}</div>
+              <div style="font-size:9px; font-family:monospace; color:#ffffff; opacity:0.8;">${randomSerial}</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="width:100px; flex-shrink:0; border-right:1.5px dashed rgba(255,255,255,0.4); display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:40px 10px; background:rgba(0,0,0,0.12);">
+        <div style="font-family:'Playfair Display',serif; font-size:20px; font-weight:900; color:#ffffff; opacity:0.7;">TED</div>
+        <div style="text-align:center;">
+          <div style="font-size:9px; color:#ffffff; opacity:0.85; margin-bottom:2px;">מושב</div>
+          <div style="font-family:'Playfair Display',serif; font-size:24px; font-weight:900; color:#ffffff; line-height:1;">${seat}</div>
+        </div>
+        <div style="font-size:10px; color:#ffffff; opacity:0.75; font-weight:700;">ספח כניסה</div>
+      </div>
+
+    </div>`;
+  }
+
+  async function exportPDF() {
+    const overlay = document.getElementById('loading-overlay');
+    overlay.classList.add('show');
+
+    try {
+      await document.fonts.ready;
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      const renderArea = document.getElementById('pdf-render-area');
+
+      for (let i = 0; i < ticketsData.length; i++) {
+        const ticket = ticketsData[i];
+        const htmlContent = buildTicketHTMLForPDF(ticket.family || '—', ticket.row || '—', ticket.seat || '—', i+1);
+
+        renderArea.innerHTML = `
+          <div style="width:820px; padding:40px; background-color:#160000; box-sizing:border-box;">
+            ${htmlContent}
+          </div>`;
+
+        await new Promise(r => setTimeout(r, 250));
+
+        const canvas = await html2canvas(renderArea, {
+          scale: 2.5, 
+          useCORS: true,
+          backgroundColor: '#160000',
+          logging: false
+        });
+
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const pdfW = pdf.internal.pageSize.getWidth();
+        const pdfH = pdf.internal.pageSize.getHeight();
+
+        if (i > 0) pdf.addPage();
+
+        pdf.setFillColor(22, 0, 0);
+        pdf.rect(0, 0, pdfW, pdfH, 'F');
+
+        const ratio = canvas.width / canvas.height;
+        const imgW = pdfW - 30; 
+        const imgH = imgW / ratio;
+        const yOff = (pdfH - imgH) / 2;
+
+        pdf.addImage(imgData, 'JPEG', 15, yOff, imgW, imgH);
+      }
+
+      renderArea.innerHTML = '';
+      pdf.save('הפקת_כרטיסי_TED_אדום_מותאם.pdf');
+    } catch(e) {
+      console.error(e);
+      alert('שגיאה ביצירת הקובץ: ' + e.message);
+    } finally {
+      overlay.classList.remove('show');
+    }
+  }
+
+  // ── Event listeners ──
+  document.getElementById('btn-minus').addEventListener('click', function() {
+    if (qty > 1) { qty--; document.getElementById('qty-num').textContent = qty; syncUI(); }
+  });
+  document.getElementById('btn-plus').addEventListener('click', function() {
+    if (qty < 10) { qty++; document.getElementById('qty-num').textContent = qty; syncUI(); }
+  });
+
+  ['inp-family','inp-row','inp-seat'].forEach(function(id) {
+    document.getElementById(id).addEventListener('input', handleInputChange);
+    document.getElementById(id).addEventListener('blur', renderTabs);
+  });
+
+  document.getElementById('btn-reset').addEventListener('click', function() {
+    ticketsData = [{ family: '', row: '', seat: '' }];
+    qty = 1; activeIndex = 0;
+    document.getElementById('qty-num').textContent = 1;
+    syncUI();
+  });
+
+  document.getElementById('btn-pdf').addEventListener('click', exportPDF);
+
+  // ── Init ──
+  syncUI();
+</script>
+</body>
+</html>
