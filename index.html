@@ -3,186 +3,155 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>כרטיס TED</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Heebo:wght@300;400;700&display=swap" rel="stylesheet">
+<title>כרטיס TED - מהדורת אדום מותאם</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Heebo:wght@300;400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --red1: #1a0000; --red2: #4d0000; --red3: #8b0000; --red4: #b22222;
-    --red5: #cc2200; --red6: #e63000; --red7: #ff4500; --red8: #ff6b35;
-    --red9: #ff8c69; --cream: #fdf6ec;
+    --ted-custom-red: #cc0404;   /* קוד הגוון המדויק שביקשת */
+    --ted-light-glow: #e60505;
+    --cream-light: #fdf6ec;
+    --border-alpha: rgba(255, 255, 255, 0.35);
   }
 
   body {
     min-height: 100vh;
-    background: var(--red1);
+    background: linear-gradient(135deg, #160000 0%, #050000 100%);
     display: flex; flex-direction: column; align-items: center;
     font-family: 'Heebo', sans-serif;
-    overflow-x: hidden; position: relative;
-  }
-  body::before {
-    content: ''; position: fixed; inset: 0;
-    background: radial-gradient(ellipse at 20% 20%, #5c0000 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 80%, #8b0000 0%, transparent 50%),
-                radial-gradient(ellipse at 50% 50%, #2d0000 0%, transparent 70%);
-    animation: bgPulse 8s ease-in-out infinite alternate; z-index: 0;
-  }
-  @keyframes bgPulse { 0%{opacity:.6} 100%{opacity:1} }
-  body::after {
-    content: ''; position: fixed; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none; z-index: 1; opacity: .3;
+    overflow-x: hidden; padding: 40px 20px;
   }
 
   .page-wrapper {
     position: relative; z-index: 2;
     display: flex; flex-direction: column; align-items: center;
-    padding: 40px 20px; gap: 40px;
-    width: 100%; max-width: 900px;
+    gap: 40px; width: 100%; max-width: 900px;
   }
 
   /* Header */
-  .site-header { text-align: center; animation: fadeDown 1s ease both; }
-  .site-title { font-family:'Playfair Display',serif; font-size:clamp(14px,3vw,18px); font-weight:400; color:var(--red9); letter-spacing:.4em; text-transform:uppercase; margin-bottom:4px; }
-  .site-subtitle { font-size:12px; color:rgba(255,255,255,.35); letter-spacing:.2em; }
+  .site-header { text-align: center; }
+  .site-title { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color: var(--ted-custom-red); letter-spacing:.4em; text-transform:uppercase; margin-bottom:4px; }
+  .site-subtitle { font-size:12px; color:rgba(255,255,255,.4); letter-spacing:.2em; }
 
-  /* Ticket */
-  .ticket-wrapper { animation:fadeUp 1s ease .3s both; filter:drop-shadow(0 40px 80px rgba(180,0,0,.6)); width:100%; max-width:780px; }
-  .ticket { display:flex; width:100%; border-radius:20px; overflow:hidden; }
-  .ticket-stripe { width:14px; background:linear-gradient(180deg,var(--red7) 0%,var(--red5) 25%,var(--red3) 50%,var(--red5) 75%,var(--red8) 100%); flex-shrink:0; }
-
-  .ticket-body {
-    flex:1; padding:44px; position:relative; overflow:hidden;
-    background:linear-gradient(135deg,#1f0000 0%,#2d0505 20%,#1a0000 40%,#3d0808 70%,#1f0000 100%);
+  /* Ticket - Custom Red Style */
+  .ticket-wrapper { filter: drop-shadow(0 25px 50px rgba(204,4,4,0.4)); width:100%; max-width:780px; }
+  .ticket { 
+    display:flex; width:100%; border-radius:16px; overflow:hidden; position: relative; 
+    border: 1px solid var(--border-alpha);
+    background: var(--ted-custom-red);
   }
-  .ticket-body::before { content:''; position:absolute; top:-100px; left:-100px; width:400px; height:400px; background:radial-gradient(circle,rgba(200,20,0,.15) 0%,transparent 70%); pointer-events:none; }
-  .ticket-body::after  { content:''; position:absolute; bottom:-80px; right:-80px; width:300px; height:300px; border:2px solid rgba(255,70,0,.08); border-radius:50%; pointer-events:none; }
+  
+  /* הפס הצידי מימין */
+  .ticket-orange-stripe {
+    width: 12px; background: linear-gradient(180deg, var(--ted-light-glow) 0%, var(--ted-custom-red) 100%); flex-shrink: 0; order: 3;
+  }
 
-  .ticket-logo-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:32px; }
-  .ted-letters { font-family:'Playfair Display',serif; font-weight:900; font-size:64px; line-height:1; letter-spacing:-2px; }
-  .ted-letters .t{color:var(--red7)} .ted-letters .e{color:var(--red5)} .ted-letters .d{color:var(--red4)}
-  .ted-tagline { font-size:9px; color:rgba(255,255,255,.4); letter-spacing:.3em; text-transform:uppercase; margin-top:4px; }
-  .dot-pattern { display:grid; grid-template-columns:repeat(5,6px); gap:4px; opacity:.3; }
-  .dot-pattern span { width:6px; height:6px; background:var(--red7); border-radius:50%; }
+  /* גוף הכרטיס המרכזי */
+  .ticket-body {
+    flex:1; padding: 40px 45px; position:relative; display: flex; flex-direction: column; justify-content: space-between; order: 2;
+    background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.18) 0%, transparent 80%);
+  }
 
-  .ticket-divider { height:1px; background:linear-gradient(90deg,transparent,rgba(200,60,0,.5),rgba(255,100,0,.8),rgba(200,60,0,.5),transparent); margin:0 0 28px; position:relative; }
-  .ticket-divider::before,.ticket-divider::after { content:'◆'; position:absolute; top:50%; transform:translateY(-50%); font-size:8px; color:var(--red7); }
-  .ticket-divider::before{left:10%} .ticket-divider::after{right:10%}
+  .ticket-top-row { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom: 25px; }
+  .ted-logo-area { display: flex; flex-direction: column; align-items: flex-start; }
+  .ted-letters { font-family:'Playfair Display',serif; font-weight:900; font-size:52px; line-height:0.85; color: #fff; letter-spacing: -1px; text-shadow: 0 4px 10px rgba(0,0,0,0.25); }
+  .ted-tagline { font-size:9px; font-weight: 700; color: #fff; opacity: 0.95; letter-spacing:.12em; text-transform:uppercase; margin-top:5px; }
+  
+  .deco-diamonds { color: #fff; opacity: 0.65; font-size: 14px; letter-spacing: 4px; }
 
-  .ticket-dedication { text-align:center; margin-bottom:28px; }
-  .dedication-label { font-size:10px; letter-spacing:.35em; color:rgba(255,255,255,.4); text-transform:uppercase; margin-bottom:6px; }
-  .dedication-name { font-family:'Playfair Display',serif; font-size:clamp(22px,4vw,34px); font-weight:700; color:var(--cream); letter-spacing:.05em; text-shadow:0 0 40px rgba(255,80,0,.4); }
-  .dedication-name .family-highlight { color:var(--red8); }
+  .ticket-dedication { text-align:center; margin: 15px 0 35px; }
+  .dedication-label { font-size:11px; font-weight: 700; letter-spacing:.15em; color: #fff; opacity: 0.85; text-transform:uppercase; margin-bottom:6px; }
+  .dedication-name { font-family:'Playfair Display',serif; font-size:clamp(26px, 4.5vw, 40px); font-weight:900; color: #fff; text-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 
-  .ticket-info-grid { display:grid; grid-template-columns:1fr 1fr auto; gap:24px; margin-bottom:28px; align-items:start; }
+  /* גריד המידע התחתון */
+  .ticket-info-grid { display:grid; grid-template-columns: auto 1fr auto; gap: 40px; align-items: flex-end; }
+  
   .info-block { display:flex; flex-direction:column; gap:4px; }
-  .info-label { font-size:9px; letter-spacing:.3em; color:rgba(255,255,255,.35); text-transform:uppercase; }
-  .info-value { font-size:clamp(13px,2vw,16px); font-weight:700; color:#fff; letter-spacing:.02em; }
-  .info-value.small { font-size:12px; }
+  .info-label { font-size:10px; font-weight:700; color: #fff; opacity: 0.85; text-transform:uppercase; }
+  .info-value { font-size:15px; font-weight:700; color: #fff; }
 
-  .seat-row-block { display:flex; align-items:center; background:rgba(255,80,0,.08); border:1px solid rgba(255,80,0,.2); border-radius:10px; overflow:hidden; }
-  .seat-row-part { display:flex; flex-direction:column; align-items:center; padding:8px 16px; gap:3px; flex:1; }
-  .seat-row-label { font-size:8px; letter-spacing:.3em; color:rgba(255,255,255,.35); text-transform:uppercase; }
-  .seat-row-value { font-family:'Playfair Display',serif; font-size:clamp(20px,3vw,28px); font-weight:900; color:var(--red8); line-height:1; }
-  .seat-row-divider { width:1px; align-self:stretch; background:rgba(255,80,0,.2); }
+  /* עיצוב ריבוע השורה והמושב */
+  .seat-row-block { display:flex; align-items:center; background: rgba(255,255,255,0.14); border: 1px solid rgba(255, 255, 255, 0.45); border-radius:10px; padding: 4px 0; backdrop-filter: blur(5px); }
+  .seat-row-part { display:flex; flex-direction:column; align-items:center; padding:6px 18px; min-width: 65px; }
+  .seat-row-label { font-size:9px; color: #fff; opacity: 0.95; font-weight: 700; margin-bottom: 2px; }
+  .seat-row-value { font-family:'Playfair Display',serif; font-size:22px; font-weight:900; color: #fff; line-height:1; }
+  .seat-row-divider { width:1px; align-self:stretch; background: rgba(255, 255, 255, 0.35); }
 
-  .ticket-bottom { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
-  .ticket-barcode { display:flex; flex-direction:column; align-items:center; gap:6px; }
-  .barcode-lines { display:flex; gap:2px; align-items:flex-end; height:40px; }
-  .barcode-lines span { background:rgba(255,255,255,.6); border-radius:1px; }
-  .barcode-num { font-size:9px; color:rgba(255,255,255,.3); letter-spacing:.15em; }
-  .ticket-seal { width:72px; height:72px; border-radius:50%; background:conic-gradient(from 0deg,var(--red7),var(--red5),var(--red3),var(--red4),var(--red6),var(--red8),var(--red7)); display:flex; align-items:center; justify-content:center; position:relative; animation:rotateSeal 20s linear infinite; flex-shrink:0; }
-  @keyframes rotateSeal{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-  .ticket-seal::after { content:'TED'; position:absolute; font-family:'Playfair Display',serif; font-weight:900; font-size:16px; color:#fff; background:var(--red2); width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; animation:rotateSeal 20s linear infinite reverse; }
-  .ticket-status { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
-  .status-badge { background:linear-gradient(135deg,var(--red6),var(--red4)); color:#fff; font-size:10px; font-weight:700; letter-spacing:.25em; padding:5px 14px; border-radius:20px; text-transform:uppercase; }
-  .ticket-event-name { font-size:10px; color:rgba(255,255,255,.3); letter-spacing:.2em; }
+  /* כפתור הסטטוס המעוגל "מאושר" */
+  .status-badge { background: #fff; color: var(--ted-custom-red); font-size:10px; font-weight:700; padding:6px 16px; border-radius:20px; display: inline-block; margin-top: 10px; letter-spacing: 0.5px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+  .ticket-num-indicator { font-size: 11px; color: #fff; opacity: 0.9; margin-top: 5px; font-weight: 700; }
 
-  .ticket-stub { width:120px; flex-shrink:0; background:linear-gradient(180deg,#2d0000 0%,#1a0000 100%); border-right:2px dashed rgba(255,80,0,.25); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px 12px; gap:16px; position:relative; }
-  .ticket-stub::before,.ticket-stub::after { content:''; position:absolute; width:20px; height:20px; background:var(--red1); border-radius:50%; right:-10px; }
-  .ticket-stub::before{top:-10px} .ticket-stub::after{bottom:-10px}
-  .stub-rotated { writing-mode:vertical-rl; text-orientation:mixed; transform:rotate(180deg); font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:var(--red7); letter-spacing:.1em; opacity:.8; }
-  .stub-seat { display:flex; flex-direction:column; align-items:center; gap:4px; }
-  .stub-seat-label { font-size:8px; letter-spacing:.3em; color:rgba(255,255,255,.3); text-transform:uppercase; }
-  .stub-seat-num { font-family:'Playfair Display',serif; font-size:26px; font-weight:900; color:#fff; }
+  /* ברקוד לבן */
+  .barcode-area { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .barcode-lines { display: flex; gap: 1.5px; align-items: flex-end; height: 30px; opacity: 0.95; }
+  .barcode-lines span { background: #fff; width: 2px; height: 30px; }
+  .barcode-num { font-size: 9px; font-family: monospace; color: #fff; opacity: 0.8; }
 
-  /* Quantity Panel */
-  .qty-panel { background:rgba(255,255,255,.04); border:1px solid rgba(255,80,0,.2); border-radius:16px; padding:28px 32px; width:100%; max-width:780px; animation:fadeUp 1s ease .6s both; }
-  .qty-panel h2 { font-family:'Playfair Display',serif; font-size:16px; color:var(--red8); letter-spacing:.2em; text-transform:uppercase; margin-bottom:20px; text-align:center; }
-  .qty-controls { display:flex; align-items:center; justify-content:center; gap:0; margin-bottom:20px; }
-  .qty-btn { width:48px; height:48px; border-radius:50%; border:2px solid rgba(255,80,0,.4); background:rgba(255,80,0,.1); color:var(--red8); font-size:24px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .2s,transform .15s,border-color .2s; font-family:'Heebo',sans-serif; }
-  .qty-btn:hover { background:rgba(255,80,0,.25); border-color:var(--red7); transform:scale(1.1); }
-  .qty-btn:active{transform:scale(.95)}
-  .qty-display{width:100px;text-align:center}
-  .qty-number{font-family:'Playfair Display',serif;font-size:52px;font-weight:900;color:#fff;line-height:1;display:block}
-  .qty-label{font-size:10px;color:rgba(255,255,255,.35);letter-spacing:.3em;text-transform:uppercase}
-  .tickets-preview{display:flex;flex-direction:column;gap:12px}
-  .mini-ticket{display:flex;align-items:center;background:rgba(255,255,255,.03);border:1px solid rgba(255,80,0,.15);border-radius:10px;overflow:hidden;transition:all .3s;cursor:pointer;}
-  .mini-ticket:hover, .mini-ticket.active {border-color:var(--red7);background:rgba(255,80,0,.08);}
-  .mini-stripe{width:6px;align-self:stretch;background:linear-gradient(180deg,var(--red7),var(--red4),var(--red3));flex-shrink:0}
-  .mini-body{flex:1;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;gap:12px}
-  .mini-ted{font-family:'Playfair Display',serif;font-weight:900;font-size:18px;color:var(--red7);letter-spacing:-1px}
-  .mini-info{display:flex;flex-direction:column;gap:2px;flex:1;padding:0 12px}
-  .mini-family{font-size:13px;font-weight:700;color:#fff}
-  .mini-details{font-size:11px;color:rgba(255,255,255,.35)}
-  .mini-seat-row{display:flex;align-items:center;background:rgba(255,80,0,.1);border:1px solid rgba(255,80,0,.25);border-radius:8px;overflow:hidden;flex-shrink:0}
-  .mini-seat-part{display:flex;flex-direction:column;align-items:center;padding:5px 10px;gap:1px}
-  .mini-seat-lbl{font-size:7px;color:rgba(255,255,255,.35);letter-spacing:.2em;text-transform:uppercase}
-  .mini-seat-val{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--red8);line-height:1}
-  .mini-divider{width:1px;align-self:stretch;background:rgba(255,80,0,.25)}
-  .mini-num-badge{width:26px;height:26px;border-radius:50%;background:rgba(255,80,0,.15);border:1px solid rgba(255,80,0,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:rgba(255,255,255,.5);flex-shrink:0}
+  /* ספח שמאלי */
+  .ticket-stub { 
+    width:100px; flex-shrink:0; border-right:1.5px dashed var(--border-alpha); display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:40px 10px; background: rgba(0,0,0,0.12); order: 1;
+  }
+  .stub-title { font-family:'Playfair Display',serif; font-size:20px; font-weight:900; color: #fff; opacity: 0.7; }
+  .stub-label { font-size:9px; color: #fff; opacity: 0.85; margin-bottom: 2px; }
+  .stub-value { font-family:'Playfair Display',serif; font-size:24px; font-weight:900; color: #fff; line-height: 1; }
 
-  /* Edit Panel */
-  .edit-panel{background:rgba(255,255,255,.04);border:1px solid rgba(255,80,0,.2);border-radius:16px;padding:32px;width:100%;max-width:780px;animation:fadeUp 1s ease .75s both}
-  .edit-panel h2{font-family:'Playfair Display',serif;font-size:16px;color:var(--red8);letter-spacing:.2em;text-transform:uppercase;margin-bottom:15px;text-align:center}
+  /* Panels UI */
+  .qty-panel, .edit-panel { background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding: 28px 32px; width:100%; max-width:780px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+  .qty-panel h2, .edit-panel h2 { font-family:'Playfair Display',serif; font-size:16px; color:#fff; letter-spacing:.15em; margin-bottom:20px; text-align:center; }
   
-  /* Tabs for multiple tickets styling */
-  .tabs-container { display:flex; gap:8px; margin-bottom:20px; overflow-x:auto; padding-bottom:5px; justify-content:center; }
-  .tab-btn { background:rgba(255,255,255,.05); border:1px solid rgba(255,80,0,.2); padding:8px 16px; color:rgba(255,255,255,.6); border-radius:8px; cursor:pointer; font-family:'Heebo',sans-serif; font-size:12px; transition:all 0.2s; white-space:nowrap; }
-  .tab-btn:hover { background:rgba(255,80,0,.1); color:#fff; }
-  .tab-btn.active { background:var(--red5); color:#fff; border-color:var(--red7); font-weight:700; }
-  
-  .fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  .field{display:flex;flex-direction:column;gap:6px}
-  .field.full{grid-column:1/-1}
-  .field label{font-size:10px;letter-spacing:.3em;color:rgba(255,255,255,.4);text-transform:uppercase}
-  .field input{background:rgba(255,255,255,.06);border:1px solid rgba(255,80,0,.2);border-radius:8px;padding:10px 14px;color:#fff;font-family:'Heebo',sans-serif;font-size:14px;outline:none;transition:border-color .3s,background .3s;width:100%}
-  .field input:focus{border-color:var(--red7);background:rgba(255,80,0,.08)}
-  .field input::placeholder{color:rgba(255,255,255,.2)}
-  .field input[readonly]{opacity:.55;cursor:default}
+  .qty-controls { display:flex; align-items:center; justify-content:center; margin-bottom:25px; }
+  .qty-btn { width:44px; height:44px; border-radius:50%; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.05); color:#fff; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition: all 0.2s; }
+  .qty-btn:hover { background: var(--ted-custom-red); border-color: var(--ted-custom-red); }
+  .qty-display { width:100px; text-align:center }
+  .qty-number { font-family:'Playfair Display',serif; font-size:44px; font-weight:900; color:#fff; line-height:1; }
 
-  .btn-row{display:flex;gap:12px;justify-content:center;margin-top:24px;flex-wrap:wrap}
-  .btn{font-family:'Heebo',sans-serif;font-size:12px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;padding:12px 28px;border-radius:40px;cursor:pointer;border:none;transition:transform .2s,box-shadow .2s}
-  .btn-primary{background:linear-gradient(135deg,var(--red6),var(--red4));color:#fff;box-shadow:0 6px 30px rgba(200,40,0,.5)}
-  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(200,40,0,.7)}
-  .btn-pdf{background:linear-gradient(135deg,#1a4a1a,#2d7a2d);color:#fff;box-shadow:0 6px 30px rgba(0,100,0,.4)}
-  .btn-pdf:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(0,120,0,.6)}
-  .btn-pdf:disabled{opacity:.5;cursor:wait;transform:none}
-  .btn-secondary{background:transparent;color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.15)}
-  .btn-secondary:hover{color:#fff;border-color:rgba(255,255,255,.4)}
+  .tickets-preview { display:flex; flex-direction:column; gap:10px; }
+  .mini-ticket { display:flex; align-items:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; overflow:hidden; cursor:pointer; transition:all .2s; }
+  .mini-ticket:hover, .mini-ticket.active { border-color: var(--ted-custom-red); background:rgba(255,255,255,0.07); }
+  .mini-stripe { width:4px; align-self:stretch; background: var(--ted-custom-red); }
+  .mini-body { flex:1; display:flex; align-items:center; justify-content:space-between; padding:12px 16px; }
+  .mini-ted { font-family:'Playfair Display',serif; font-weight:900; font-size:16px; color: var(--ted-custom-red); }
+  .mini-family { font-size:13px; font-weight:700; color:#fff; }
+  .mini-seat-val { font-weight:700; color: var(--ted-custom-red); }
+  .mini-num-badge { width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; font-size:11px; color:#fff; }
 
-  /* Loading overlay */
-  .loading-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:16px}
-  .loading-overlay.show{display:flex}
-  .loading-spinner{width:50px;height:50px;border:3px solid rgba(255,80,0,.2);border-top-color:var(--red7);border-radius:50%;animation:spin .8s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .loading-text{color:#fff;font-size:14px;letter-spacing:.2em}
+  /* Tabs UI */
+  .tabs-container { display:flex; gap:8px; margin-bottom:20px; justify-content:center; overflow-x:auto; }
+  .tab-btn { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); padding:8px 16px; color:rgba(255,255,255,0.6); border-radius:6px; cursor:pointer; font-size:12px; }
+  .tab-btn.active { background: var(--ted-custom-red); color:#fff; border-color: var(--ted-custom-red); font-weight:700; }
 
-  @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes fadeDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+  .fields-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .field { display:flex; flex-direction:column; gap:6px; }
+  .field.full { grid-column:1/-1; }
+  .field label { font-size:11px; color:rgba(255,255,255,0.5); }
+  .field input { background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.15); border-radius:6px; padding:10px 14px; color:#fff; font-size:14px; outline:none; }
+  .field input:focus { border-color: var(--ted-custom-red); }
+  .field input[readonly] { opacity:.4; }
+
+  .btn-row { display:flex; gap:12px; justify-content:center; margin-top:24px; flex-wrap:wrap; }
+  .btn { font-size:12px; font-weight:700; padding:12px 28px; border-radius:40px; cursor:pointer; border:none; transition: all 0.2s; }
+  .btn-primary { background: var(--ted-custom-red); color:#fff; }
+  .btn-primary:hover { background: #b30303; }
+  .btn-secondary { background:transparent; color:rgba(255,255,255,0.5); border:1px solid rgba(255,255,255,0.15); }
+  .btn-secondary:hover { color:#fff; border-color:rgba(255,255,255,0.3); }
+
+  /* Loader */
+  .loading-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:999; align-items:center; justify-content:center; flex-direction:column; gap:16px; }
+  .loading-overlay.show { display:flex; }
+  .loading-spinner { width:40px; height:40px; border:2px solid rgba(255,255,255,0.1); border-top-color: var(--ted-custom-red); border-radius:50%; animation:spin .8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg) } }
 
   @media(max-width:620px){
-    .ticket{flex-direction:column}
-    .ticket-stripe{width:100%;height:12px;background:linear-gradient(90deg,var(--red7),var(--red5),var(--red3))}
-    .ticket-stub{width:100%;height:auto;flex-direction:row;border-right:none;border-top:2px dashed rgba(255,80,0,.25)}
-    .ticket-stub::before{top:-10px;right:20%} .ticket-stub::after{top:-10px;right:70%}
-    .stub-rotated{writing-mode:horizontal-tb;transform:none}
-    .ticket-info-grid{grid-template-columns:1fr 1fr}
-    .fields-grid{grid-template-columns:1fr}
-    .field.full{grid-column:1}
+    .ticket { flex-direction:column; }
+    .ticket-orange-stripe { width: 100%; height: 8px; order: 1; }
+    .ticket-body { order: 2; padding: 30px 20px; }
+    .ticket-stub { width:100%; border-right:none; border-top:1px dashed var(--border-alpha); padding: 20px; order: 3; flex-direction: row; justify-content: space-between; }
+    .ticket-info-grid { grid-template-columns: 1fr; gap: 20px; }
+    .fields-grid { grid-template-columns:1fr; }
+    .field.full { grid-column:1; }
   }
 </style>
 </head>
@@ -190,100 +159,103 @@
 
 <div class="loading-overlay" id="loading-overlay">
   <div class="loading-spinner"></div>
-  <div class="loading-text">מייצר PDF...</div>
+  <div style="color: #fff; font-size: 14px;">מפיק קובצי PDF באיכות גבוהה...</div>
 </div>
 
-<div id="pdf-render-area" style="position:absolute;left:-9999px;top:-9999px;width:860px;overflow:hidden;"></div>
+<div id="pdf-render-area" style="position:absolute;left:-9999px;top:-9999px;width:840px;overflow:hidden;"></div>
 
 <div class="page-wrapper">
 
   <header class="site-header">
-    <div class="site-title">כרטיסי אירוע</div>
-    <div class="site-subtitle">TICKET MANAGER · TED EVENTS</div>
+    <div class="site-title">מערכת הפקת כרטיסים</div>
+    <div class="site-subtitle">TED CUSTOM RED DESIGNER</div>
   </header>
 
-  <!-- MAIN TICKET VIEW (Shows selected tab data) -->
   <div class="ticket-wrapper">
     <div class="ticket" id="main-ticket-element">
-      <div class="ticket-stripe"></div>
+      
+      <div class="ticket-orange-stripe"></div>
+
       <div class="ticket-body">
-        <div class="ticket-logo-row">
-          <div><div class="ted-letters"><span class="t">T</span><span class="e">E</span><span class="d">D</span></div><div class="ted-tagline">Ideas Worth Spreading</div></div>
-          <div class="dot-pattern" id="dots"></div>
+        <div class="ticket-top-row">
+          <div class="ted-logo-area">
+            <div class="ted-letters">TED</div>
+            <div class="ted-tagline">Ideas Worth Spreading</div>
+          </div>
+          <div class="deco-diamonds">✦✦✦✦✦</div>
         </div>
-        <div class="ticket-divider"></div>
+
         <div class="ticket-dedication">
           <div class="dedication-label">לכבוד</div>
-          <div class="dedication-name"><span class="family-highlight" id="ticket-family">—</span></div>
+          <div class="dedication-name"><span id="ticket-family">—</span></div>
         </div>
+
         <div class="ticket-info-grid">
           <div class="info-block">
-            <span class="info-label">תאריך ושעה</span>
-            <span class="info-value" id="ticket-date">1/6/26 · 12:30</span>
-          </div>
-          <div class="info-block">
             <span class="info-label">מיקום</span>
-            <span class="info-value small" id="ticket-location">פרינדס יהוד · אולם מופת</span>
+            <span class="info-value" id="ticket-location">פרינדס יהוד · אולם מופת</span>
+            <div><span class="status-badge">✓ מאושר · TED TALKS LIVE</span></div>
           </div>
-          <div class="seat-row-block">
-            <div class="seat-row-part">
-              <span class="seat-row-label">שורה</span>
-              <span class="seat-row-value" id="ticket-row">—</span>
+          
+          <div class="info-block" style="align-items: center;">
+            <span class="info-label">תאריך ושעה</span>
+            <span class="info-value" id="ticket-date" style="direction: ltr;">1/6/26 · 12:30</span>
+            <div class="ticket-num-indicator">כרטיס <span id="main-ticket-num">1</span></div>
+          </div>
+
+          <div class="info-block" style="align-items: flex-end;">
+            <div class="seat-row-block">
+              <div class="seat-row-part">
+                <span class="seat-row-label">שורה</span>
+                <span class="seat-row-value" id="ticket-row">—</span>
+              </div>
+              <div class="seat-row-divider"></div>
+              <div class="seat-row-part">
+                <span class="seat-row-label">מושב</span>
+                <span class="seat-row-value" id="ticket-seat">—</span>
+              </div>
             </div>
-            <div class="seat-row-divider"></div>
-            <div class="seat-row-part">
-              <span class="seat-row-label">מושב</span>
-              <span class="seat-row-value" id="ticket-seat">—</span>
+            
+            <div class="barcode-area" style="margin-top: 12px; margin-left: 10px;">
+              <div class="barcode-lines" id="barcode-container"></div>
+              <div class="barcode-num" id="barcode-text">TED-7097-1246</div>
             </div>
-          </div>
-        </div>
-        <div class="ticket-bottom">
-          <div class="ticket-barcode">
-            <div class="barcode-lines" id="barcode"></div>
-            <div class="barcode-num" id="barcode-num">TED-0000-0000</div>
-          </div>
-          <div class="ticket-seal"></div>
-          <div class="ticket-status">
-            <div class="status-badge">✓ מאושר</div>
-            <div class="ticket-event-name">TED TALKS LIVE</div>
           </div>
         </div>
       </div>
+
       <div class="ticket-stub">
-        <div class="stub-rotated">TED</div>
-        <div class="stub-seat">
-          <div class="stub-seat-label">מושב</div>
-          <div class="stub-seat-num" id="stub-seat">—</div>
+        <div class="stub-title">TED</div>
+        <div style="text-align: center;">
+          <div class="stub-label">מושב</div>
+          <div class="stub-value" id="stub-seat">—</div>
         </div>
+        <div style="font-size: 10px; color: #fff; opacity: 0.75; font-weight: 700;">ספח כניסה</div>
       </div>
+
     </div>
   </div>
 
-  <!-- QUANTITY PANEL -->
   <div class="qty-panel">
     <h2>✦ כמות כרטיסים להפקה ✦</h2>
     <div class="qty-controls">
       <button class="qty-btn" id="btn-minus">−</button>
       <div class="qty-display">
         <span class="qty-number" id="qty-num">1</span>
-        <span class="qty-label">כרטיסים</span>
       </div>
       <button class="qty-btn" id="btn-plus">+</button>
     </div>
     <div class="tickets-preview" id="tickets-preview"></div>
   </div>
 
-  <!-- EDIT PANEL -->
   <div class="edit-panel">
     <h2>✦ עריכת פרטי הכרטיסים ✦</h2>
-    
-    <!-- כפתורי טאבים למעבר בין כרטיסים -->
     <div class="tabs-container" id="tabs-container"></div>
     
     <div class="fields-grid">
       <div class="field full">
         <label>שם האורח / משפחה (יופיע תחת "לכבוד")</label>
-        <input type="text" id="inp-family" placeholder="לדוגמה: משפחת כהן או ישראל ישראלי">
+        <input type="text" id="inp-family" placeholder="לדוגמה: משפחת כהן או אריאל בונדה">
       </div>
       <div class="field">
         <label>תאריך ושעה (קבוע)</label>
@@ -295,54 +267,46 @@
       </div>
       <div class="field">
         <label>שורה</label>
-        <input type="text" id="inp-row" placeholder="A">
+        <input type="text" id="inp-row" placeholder="1">
       </div>
       <div class="field">
         <label>מספר מושב</label>
-        <input type="text" id="inp-seat" placeholder="12">
+        <input type="text" id="inp-seat" placeholder="2">
       </div>
     </div>
     <div class="btn-row">
       <button class="btn btn-secondary" id="btn-reset">אפס הכל</button>
-      <button class="btn btn-primary" id="btn-print">🖨 הדפסה</button>
-      <button class="btn btn-pdf" id="btn-pdf">📄 ייצוא כל הכרטיסים ל-PDF</button>
+      <button class="btn btn-primary" id="btn-pdf">📄 ייצוא לקובץ PDF</button>
     </div>
   </div>
 
 </div>
 
 <script>
-  // ── Constants ──
   const FIXED_DATE     = '1/6/26 · 12:30';
   const FIXED_LOCATION = 'פרינדס יהוד · אולם מופת';
 
-  // ── Dots & Barcode Initialization ──
-  const dotsEl = document.getElementById('dots');
-  for (let i = 0; i < 25; i++) dotsEl.appendChild(document.createElement('span'));
+  function generateBarcodeUI(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    const widths = [1, 2, 1, 3, 1, 2, 4, 1, 2, 1, 3, 2, 1, 4, 1, 2];
+    widths.forEach(w => {
+      const line = document.createElement('span');
+      line.style.width = w + 'px';
+      line.style.display = 'inline-block';
+      line.style.background = '#ffffff';
+      line.style.height = '25px';
+      line.style.margin = '0 0.5px';
+      container.appendChild(line);
+    });
+  }
 
-  const bc = document.getElementById('barcode');
-  [2,3,1,4,2,1,3,2,4,1,3,2,1,2,3,1,4,2,3,1].forEach(w => {
-    const bar = document.createElement('span');
-    bar.style.width  = w + 'px';
-    bar.style.height = (20 + Math.random() * 20) + 'px';
-    bar.style.opacity = 0.4 + Math.random() * 0.6;
-    bc.appendChild(bar);
-  });
-  document.getElementById('barcode-num').textContent =
-    'TED-' + Math.floor(1000+Math.random()*9000) + '-' + Math.floor(1000+Math.random()*9000);
-
-  // ── Data Management for Multiple Independent Tickets ──
   let qty = 1;
-  let activeIndex = 0; // האינדקס של הכרטיס שנמצא כרגע בעריכה ובתצוגה הראשית
-  
-  // מערך אובייקטים שמחזיק את המידע הנפרד של כל כרטיס
-  let ticketsData = [
-    { family: '', row: '', seat: '' }
-  ];
+  let activeIndex = 0; 
+  let ticketsData = [{ family: '', row: '', seat: '' }];
 
-  // פונקציה שמאתחלת או מעדכנת את מערך הנתונים לפי ה-qty הנוכחי
   function adjustTicketsDataSchema() {
-    // אם הוגדלה הכמות, נוסיף איברים חדשים למערך תוך ניחוש מושב עוקב חכם מהכרטיס האחרון
     while (ticketsData.length < qty) {
       const lastTicket = ticketsData[ticketsData.length - 1];
       let nextSeat = '';
@@ -350,55 +314,44 @@
         nextSeat = (parseInt(lastTicket.seat) + 1).toString();
       }
       ticketsData.push({
-        family: lastTicket ? lastTicket.family : '', // משכפל את השם של הקודם כברירת מחדל לנוחות
-        row: lastTicket ? lastTicket.row : '',       // משכפל את השורה
+        family: lastTicket ? lastTicket.family : '', 
+        row: lastTicket ? lastTicket.row : '',       
         seat: nextSeat
       });
     }
-    // אם הכמות קטנה, נחתוך את המערך
     if (ticketsData.length > qty) {
       ticketsData = ticketsData.slice(0, qty);
     }
-    // וידוא שהאינדקס הפעיל לא חורג מגבולות המערך החדש
-    if (activeIndex >= qty) {
-      activeIndex = qty - 1;
-    }
+    if (activeIndex >= qty) activeIndex = qty - 1;
   }
 
-  // ── Render Form Inputs & Main Ticket View ──
   function syncUI() {
     adjustTicketsDataSchema();
     renderTabs();
     
-    // מילוי השדות בטופס העריכה לפי הכרטיס שנבחר כרגע (activeIndex)
     const currentData = ticketsData[activeIndex];
     document.getElementById('inp-family').value = currentData.family;
     document.getElementById('inp-row').value    = currentData.row;
     document.getElementById('inp-seat').value   = currentData.seat;
 
-    // עדכון תצוגת הכרטיס הגדול הראשי שעל המסך
     document.getElementById('ticket-family').textContent   = currentData.family || '—';
-    document.getElementById('ticket-date').textContent     = FIXED_DATE;
-    document.getElementById('ticket-location').textContent = FIXED_LOCATION;
     document.getElementById('ticket-row').textContent      = currentData.row    || '—';
     document.getElementById('ticket-seat').textContent     = currentData.seat   || '—';
     document.getElementById('stub-seat').textContent       = currentData.seat   || '—';
+    document.getElementById('main-ticket-num').textContent = activeIndex + 1;
 
+    generateBarcodeUI('barcode-container');
     renderMiniTicketsPreview();
   }
 
-  // ── Render Tabs Buttons ──
   function renderTabs() {
     const tabsContainer = document.getElementById('tabs-container');
     tabsContainer.innerHTML = '';
-    
-    // מייצרים כפתור טאב ייעודי לכל כרטיס
     for (let i = 0; i < qty; i++) {
       const btn = document.createElement('button');
       btn.className = `tab-btn ${i === activeIndex ? 'active' : ''}`;
       const nameText = ticketsData[i].family ? `(${ticketsData[i].family})` : '';
       btn.textContent = `כרטיס ${i + 1} ${nameText}`;
-      
       btn.addEventListener('click', () => {
         activeIndex = i;
         syncUI();
@@ -407,13 +360,11 @@
     }
   }
 
-  // ── Update Data on Input Change ──
   function handleInputChange() {
     ticketsData[activeIndex].family = document.getElementById('inp-family').value.trim();
     ticketsData[activeIndex].row    = document.getElementById('inp-row').value.trim();
     ticketsData[activeIndex].seat   = document.getElementById('inp-seat').value.trim();
     
-    // עדכון מהיר של התצוגה המקדימה והכרטיס הראשי בלי לבנות מחדש את כל הטאבים (מונע אובדן פוקוס)
     document.getElementById('ticket-family').textContent = ticketsData[activeIndex].family || '—';
     document.getElementById('ticket-row').textContent    = ticketsData[activeIndex].row    || '—';
     document.getElementById('ticket-seat').textContent   = ticketsData[activeIndex].seat   || '—';
@@ -422,7 +373,6 @@
     renderMiniTicketsPreview();
   }
 
-  // ── Render Mini tickets Preview ──
   function renderMiniTicketsPreview() {
     const preview = document.getElementById('tickets-preview');
     preview.innerHTML = '';
@@ -436,17 +386,14 @@
           <div class="mini-ted">TED</div>
           <div class="mini-info">
             <div class="mini-family">${data.family || '—'}</div>
-            <div class="mini-details">${FIXED_DATE} · ${FIXED_LOCATION}</div>
+            <div class="mini-details">${FIXED_DATE}</div>
           </div>
-          <div class="mini-seat-row">
-            <div class="mini-seat-part"><span class="mini-seat-lbl">שורה</span><span class="mini-seat-val">${data.row || '—'}</span></div>
-            <div class="mini-divider"></div>
-            <div class="mini-seat-part"><span class="mini-seat-lbl">מושב</span><span class="mini-seat-val">${data.seat || '—'}</span></div>
+          <div style="font-size:12px; color:#fff;">
+            שורה <span class="mini-seat-val">${data.row || '—'}</span> | מושב <span class="mini-seat-val">${data.seat || '—'}</span>
           </div>
           <div class="mini-num-badge">${i+1}</div>
         </div>`;
       
-      // לחיצה על כרטיס קטן מעבירה אותו מייד למצב עריכה
       div.addEventListener('click', () => {
         activeIndex = i;
         syncUI();
@@ -455,106 +402,106 @@
     });
   }
 
-  // ── Build a full ticket HTML string for PDF ──
-  function buildTicketHTML(family, row, seat, ticketNum) {
-    const bcNum = 'TED-' + Math.floor(1000+Math.random()*9000) + '-' + Math.floor(1000+Math.random()*9000);
-    const bars = [2,3,1,4,2,1,3,2,4,1,3,2,1,2,3,1,4,2,3,1].map(w => {
-      const h = Math.floor(20 + Math.random()*20);
-      const o = (0.4 + Math.random()*0.6).toFixed(2);
-      return `<span style="display:inline-block;width:${w}px;height:${h}px;background:rgba(255,255,255,.6);border-radius:1px;opacity:${o};margin:0 1px;"></span>`;
+  // הפקת קוד כרטיס באדום המותאם המדויק ל-PDF
+  function buildTicketHTMLForPDF(family, row, seat, ticketNum) {
+    const randomSerial = "TED-" + Math.floor(6000 + Math.random() * 2000) + "-" + Math.floor(1000 + Math.random() * 9000);
+    const barcodeLinesHTML = [1, 2, 1, 3, 1, 2, 4, 1, 2, 1, 3, 2, 1, 4, 1, 2].map(w => {
+      return `<span style="display:inline-block; width:${w}px; height:25px; background:#ffffff; margin:0 0.5px;"></span>`;
     }).join('');
 
     return `
-    <div style="display:flex;width:740px;border-radius:20px;overflow:hidden;font-family:'Heebo', sans-serif;direction:rtl;text-align:right;">
-      <div style="width:14px;flex-shrink:0;background:linear-gradient(180deg,#ff4500 0%,#cc2200 25%,#8b0000 50%,#cc2200 75%,#ff6b35 100%);"></div>
-      <div style="flex:1;padding:40px;position:relative;background:linear-gradient(135deg,#1f0000 0%,#2d0505 20%,#1a0000 40%,#3d0808 70%,#1f0000 100%);">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:25px;">
-          <div>
-            <div style="font-family:'Playfair Display',serif;font-weight:900;font-size:56px;line-height:1;letter-spacing:-2px;">
-              <span style="color:#ff4500">T</span><span style="color:#cc2200">E</span><span style="color:#b22222">D</span>
+    <div style="display:flex; width:750px; border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.4); font-family:'Heebo', sans-serif; direction:rtl; text-align:right; box-sizing:border-box; position:relative; background: #cc0404;">
+      
+      <div style="width:12px; background:linear-gradient(180deg, #e60505 0%, #cc0404 100%); flex-shrink:0;"></div>
+
+      <div style="flex:1; padding:40px 45px; display:flex; flex-direction:column; justify-content:space-between; background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.18) 0%, transparent 80%);">
+        
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:15px;">
+          <div style="display:flex; flex-direction:column;">
+            <div style="font-family:'Playfair Display',serif; font-weight:900; font-size:52px; line-height:0.85; color:#ffffff; letter-spacing:-1px; text-shadow:0 4px 10px rgba(0,0,0,0.25);">TED</div>
+            <div style="font-size:9px; font-weight:700; color:#fdf6ec; opacity:0.95; letter-spacing:1px; text-transform:uppercase; margin-top:5px;">Ideas Worth Spreading</div>
+          </div>
+          <div style="color:#ffffff; opacity:0.65; font-size:14px; letter-spacing:4px;">✦✦✦✦✦</div>
+        </div>
+
+        <div style="text-align:center; margin:15px 0 35px;">
+          <div style="font-size:11px; font-weight:700; color:#fdf6ec; opacity:0.85; text-transform:uppercase; margin-bottom:6px;">לכבוד</div>
+          <div style="font-family:'Playfair Display',serif; font-size:36px; font-weight:900; color:#ffffff; text-shadow:0 4px 12px rgba(0,0,0,0.3);">${family}</div>
+        </div>
+
+        <div style="display:flex; gap:40px; align-items:flex-end;">
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <span style="font-size:10px; font-weight:700; color:#fdf6ec; opacity:0.85;">מיקום</span>
+            <span style="font-size:15px; font-weight:700; color:#ffffff;">${FIXED_LOCATION}</span>
+            <div style="margin-top:10px;"><span style="background:#ffffff; color:#cc0404; font-size:10px; font-weight:700; padding:6px 16px; border-radius:20px; display:inline-block; font-weight:bold;">✓ מאושר · TED TALKS LIVE</span></div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex:1;">
+            <span style="font-size:10px; font-weight:700; color:#fdf6ec; opacity:0.85;">תאריך ושעה</span>
+            <span style="font-size:15px; font-weight:700; color:#ffffff; direction:ltr;">${FIXED_DATE}</span>
+            <div style="font-size:11px; color:#fdf6ec; opacity:0.9; margin-top:5px; font-weight:700;">כרטיס ${ticketNum}</div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; align-items:flex-end;">
+            <div style="display:flex; align-items:center; background:rgba(255,255,255,0.14); border:1px solid rgba(255, 255, 255, 0.45); border-radius:10px; padding:4px 0;">
+              <div style="display:flex; flex-direction:column; align-items:center; padding:6px 18px; min-width:65px;">
+                <span style="font-size:9px; color:#ffffff; opacity:0.95; font-weight:700; margin-bottom:2px;">שורה</span>
+                <span style="font-family:'Playfair Display',serif; font-size:22px; font-weight:900; color:#ffffff; line-height:1;">${row}</span>
+              </div>
+              <div style="width:1px; align-self:stretch; background:rgba(255, 255, 255, 0.35);"></div>
+              <div style="display:flex; flex-direction:column; align-items:center; padding:6px 18px; min-width:65px;">
+                <span style="font-size:9px; color:#ffffff; opacity:0.95; font-weight:700; margin-bottom:2px;">מושב</span>
+                <span style="font-family:'Playfair Display',serif; font-size:22px; font-weight:900; color:#ffffff; line-height:1;">${seat}</span>
+              </div>
             </div>
-            <div style="font-size:9px;color:rgba(255,255,255,.4);letter-spacing:.3em;text-transform:uppercase;margin-top:4px;">Ideas Worth Spreading</div>
-          </div>
-          <div style="font-size:12px;color:rgba(255,80,0,.5);letter-spacing:.1em;">✦ ✦ ✦ ✦ ✦</div>
-        </div>
-        <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(200,60,0,.5),rgba(255,100,0,.8),rgba(200,60,0,.5),transparent);margin-bottom:25px;"></div>
-        <div style="text-align:center;margin-bottom:25px;">
-          <div style="font-size:10px;letter-spacing:.35em;color:rgba(255,255,255,.4);margin-bottom:6px;">לכבוד</div>
-          <div style="font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:#fdf6ec;">
-            <span style="color:#ff6b35;">${family}</span>
-          </div>
-        </div>
-        <div style="display:flex;gap:20px;margin-bottom:25px;align-items:center;">
-          <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
-            <span style="font-size:9px;color:rgba(255,255,255,.35);">תאריך ושעה</span>
-            <span style="font-size:14px;font-weight:700;color:#fff;direction:ltr;text-align:right;">${FIXED_DATE}</span>
-          </div>
-          <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
-            <span style="font-size:9px;color:rgba(255,255,255,.35);">מיקום</span>
-            <span style="font-size:13px;font-weight:700;color:#fff;">${FIXED_LOCATION}</span>
-          </div>
-          <div style="display:flex;align-items:center;background:rgba(255,80,0,.08);border:1px solid rgba(255,80,0,.2);border-radius:10px;overflow:hidden;">
-            <div style="display:flex;flex-direction:column;align-items:center;padding:6px 14px;">
-              <span style="font-size:8px;color:rgba(255,255,255,.35);">שורה</span>
-              <span style="font-family:'Playfair Display',serif;font-size:24px;font-weight:900;color:#ff6b35;line-height:1;">${row}</span>
-            </div>
-            <div style="width:1px;align-self:stretch;background:rgba(255,80,0,.2);"></div>
-            <div style="display:flex;flex-direction:column;align-items:center;padding:6px 14px;">
-              <span style="font-size:8px;color:rgba(255,255,255,.35);">מושב</span>
-              <span style="font-family:'Playfair Display',serif;font-size:24px;font-weight:900;color:#ff6b35;line-height:1;">${seat}</span>
+            
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; margin-top:12px; margin-left:10px;">
+              <div style="display:flex; gap:1.5px; align-items:flex-end; height:25px; opacity:0.95;">${barcodeLinesHTML}</div>
+              <div style="font-size:9px; font-family:monospace; color:#ffffff; opacity:0.8;">${randomSerial}</div>
             </div>
           </div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
-          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-            <div style="display:flex;align-items:flex-end;height:35px;">${bars}</div>
-            <div style="font-size:9px;color:rgba(255,255,255,.3);letter-spacing:.15em;">${bcNum}</div>
-          </div>
-          <div style="background:linear-gradient(135deg,#e63000,#b22222);color:#fff;font-size:10px;font-weight:700;padding:6px 14px;border-radius:20px;">✓ מאושר · TED TALKS LIVE</div>
-          <div style="font-size:11px;color:rgba(255,80,0,.5);">כרטיס ${ticketNum}</div>
-        </div>
+
       </div>
-      <div style="width:110px;flex-shrink:0;background:linear-gradient(180deg,#2d0000 0%,#1a0000 100%);border-right:2px dashed rgba(255,80,0,.25);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 10px;gap:12px;">
-        <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#ff4500;letter-spacing:.1em;opacity:.8;">TED</div>
-        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-          <div style="font-size:8px;color:rgba(255,255,255,.3);">מושב</div>
-          <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:900;color:#fff;">${seat}</div>
+
+      <div style="width:100px; flex-shrink:0; border-right:1.5px dashed rgba(255,255,255,0.4); display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:40px 10px; background:rgba(0,0,0,0.12);">
+        <div style="font-family:'Playfair Display',serif; font-size:20px; font-weight:900; color:#ffffff; opacity:0.7;">TED</div>
+        <div style="text-align:center;">
+          <div style="font-size:9px; color:#ffffff; opacity:0.85; margin-bottom:2px;">מושב</div>
+          <div style="font-family:'Playfair Display',serif; font-size:24px; font-weight:900; color:#ffffff; line-height:1;">${seat}</div>
         </div>
+        <div style="font-size:10px; color:#ffffff; opacity:0.75; font-weight:700;">ספח כניסה</div>
       </div>
+
     </div>`;
   }
 
-  // ── Export PDF (Renders all unique tickets to separate pages) ──
   async function exportPDF() {
     const overlay = document.getElementById('loading-overlay');
-    const pdfBtn  = document.getElementById('btn-pdf');
     overlay.classList.add('show');
-    pdfBtn.disabled = true;
 
     try {
       await document.fonts.ready;
-
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
       const renderArea = document.getElementById('pdf-render-area');
 
-      // לולאה שרצה על כל המידע הייחודי של כל הכרטיסים שנוצרו
       for (let i = 0; i < ticketsData.length; i++) {
         const ticket = ticketsData[i];
+        const htmlContent = buildTicketHTMLForPDF(ticket.family || '—', ticket.row || '—', ticket.seat || '—', i+1);
 
         renderArea.innerHTML = `
-          <div style="width:820px; padding:40px; background:#1a0000; box-sizing:border-box;">
-            ${buildTicketHTML(ticket.family || '—', ticket.row || '—', ticket.seat || '—', i+1)}
+          <div style="width:820px; padding:40px; background-color:#160000; box-sizing:border-box;">
+            ${htmlContent}
           </div>`;
 
         await new Promise(r => setTimeout(r, 250));
 
         const canvas = await html2canvas(renderArea, {
-          scale: 2,
+          scale: 2.5, 
           useCORS: true,
-          backgroundColor: '#1a0000',
-          logging: false,
-          allowTaint: true
+          backgroundColor: '#160000',
+          logging: false
         });
 
         const imgData = canvas.toDataURL('image/jpeg', 0.95);
@@ -563,7 +510,7 @@
 
         if (i > 0) pdf.addPage();
 
-        pdf.setFillColor(26, 0, 0);
+        pdf.setFillColor(22, 0, 0);
         pdf.rect(0, 0, pdfW, pdfH, 'F');
 
         const ratio = canvas.width / canvas.height;
@@ -575,48 +522,35 @@
       }
 
       renderArea.innerHTML = '';
-      pdf.save(`הפקת_כרטיסי_TED.pdf`);
+      pdf.save('הפקת_כרטיסי_TED_אדום_מותאם.pdf');
     } catch(e) {
       console.error(e);
-      alert('שגיאה בייצוא ה-PDF: ' + e.message);
+      alert('שגיאה ביצירת הקובץ: ' + e.message);
     } finally {
       overlay.classList.remove('show');
-      pdfBtn.disabled = false;
     }
   }
 
   // ── Event listeners ──
   document.getElementById('btn-minus').addEventListener('click', function() {
-    if (qty > 1) { 
-      qty--; 
-      document.getElementById('qty-num').textContent = qty; 
-      syncUI(); 
-    }
+    if (qty > 1) { qty--; document.getElementById('qty-num').textContent = qty; syncUI(); }
   });
   document.getElementById('btn-plus').addEventListener('click', function() {
-    if (qty < 10) { 
-      qty++; 
-      document.getElementById('qty-num').textContent = qty; 
-      syncUI(); 
-    }
+    if (qty < 10) { qty++; document.getElementById('qty-num').textContent = qty; syncUI(); }
   });
 
-  // האזנה לשינויים בשדות והחלתם לתוך האובייקט הפעיל
   ['inp-family','inp-row','inp-seat'].forEach(function(id) {
     document.getElementById(id).addEventListener('input', handleInputChange);
-    // אירוע המופעל כשהמשתמש מסיים להקליד ויוצא מהשדה, בשביל לרענן את הטאבים עם השם החדש
     document.getElementById(id).addEventListener('blur', renderTabs);
   });
 
   document.getElementById('btn-reset').addEventListener('click', function() {
     ticketsData = [{ family: '', row: '', seat: '' }];
-    qty = 1;
-    activeIndex = 0;
+    qty = 1; activeIndex = 0;
     document.getElementById('qty-num').textContent = 1;
     syncUI();
   });
 
-  document.getElementById('btn-print').addEventListener('click', function() { window.print(); });
   document.getElementById('btn-pdf').addEventListener('click', exportPDF);
 
   // ── Init ──
